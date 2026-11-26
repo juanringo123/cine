@@ -68,7 +68,7 @@ export default function CartPanel({ cinemas }: { cinemas: CinemaOption[] }) {
   }
 
   return (
-    <aside className="cine-card h-fit space-y-4 p-[22px]">
+    <aside className="cine-card h-fit space-y-4 p-4 sm:p-[22px]">
       <h2 className="text-lg font-bold text-cine-ink">Keranjang</h2>
 
       {items.length === 0 ? (
@@ -131,7 +131,7 @@ export default function CartPanel({ cinemas }: { cinemas: CinemaOption[] }) {
                 ))}
               </Select>
             </label>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               <label className="space-y-1.5">
                 <span className="cine-label block">Tanggal</span>
                 <Input

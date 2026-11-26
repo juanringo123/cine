@@ -234,7 +234,7 @@ export default function SeatMap({
       </div>
 
       {/* Kanan: Panel Ringkasan (Figma 1:862) */}
-      <aside className="cine-card flex flex-col gap-4 p-6">
+      <aside className="cine-card flex flex-col gap-4 p-4 sm:p-6">
         <div className="flex items-center gap-3.5">
           <div className="relative h-[92px] w-[64px] shrink-0 overflow-hidden rounded-xl bg-white">
             <Image src={posterUrl} alt={movieTitle} fill sizes="64px" className="object-cover" />
@@ -247,7 +247,7 @@ export default function SeatMap({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           <div className="flex items-center justify-between gap-1 rounded-[10px] border border-cine-border bg-white px-3.5 py-3 text-sm text-cine-ink">
             <span>{formatShortDate(showDate)}</span>
             {isWeekendDate(showDate) && (

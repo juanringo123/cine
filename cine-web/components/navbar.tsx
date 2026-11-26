@@ -198,171 +198,178 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <header className="cine-glass-nav sticky top-0 z-40 h-[64px] border-b border-cine-border/80 sm:h-[72px]">
-      <nav className="cine-container flex h-full items-center justify-between gap-2 sm:gap-4">
-        <div className="flex h-full items-center gap-4 lg:gap-6">
-          <Link
-            href="/"
-            aria-label="CINÉ — Beranda"
-            className="-mt-[5px] flex shrink-0 items-center transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.98] sm:-mt-[7px]"
-          >
-            <Image
-              src="/assets/cine-logo.png"
-              alt="CINÉ"
-              width={551}
-              height={314}
-              priority
-              className="h-[38px] w-auto object-contain drop-shadow-[0_1px_1px_rgba(109,31,46,0.22)] sm:h-[46px]"
+    <>
+      <header className="cine-glass-nav sticky top-0 z-40 h-[64px] border-b border-cine-border/80 sm:h-[72px]">
+        <nav className="cine-container flex h-full items-center justify-between gap-2 sm:gap-4">
+          <div className="flex h-full items-center gap-4 lg:gap-6">
+            <Link
+              href="/"
+              aria-label="CINÉ — Beranda"
+              className="-mt-[5px] flex shrink-0 items-center transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.98] sm:-mt-[7px]"
+            >
+              <Image
+                src="/assets/cine-logo.png"
+                alt="CINÉ"
+                width={551}
+                height={314}
+                priority
+                className="h-[36px] w-auto object-contain drop-shadow-[0_1px_1px_rgba(109,31,46,0.22)] sm:h-[46px]"
+              />
+            </Link>
+
+            <GlassTabs
+              items={navItems}
+              activeKey={activeNavKey}
+              variant="plain"
+              className="hidden lg:inline-flex"
             />
-          </Link>
+          </div>
 
-          <GlassTabs
-            items={navItems}
-            activeKey={activeNavKey}
-            variant="plain"
-            className="hidden lg:inline-flex"
-          />
-        </div>
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3 lg:gap-4">
+            {/* Pill Lokasi (desktop & tablet; mobile di dalam drawer) */}
+            <div ref={cityMenuRef} className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setCityOpen((v) => !v);
+                }}
+                aria-expanded={cityOpen}
+                className={cn(
+                  "flex cursor-pointer items-center gap-2 rounded-full px-4 py-[9px] text-sm font-medium text-cine-ink active:scale-[0.98]",
+                  cityOpen ? "cine-glass-pill text-cine-maroon" : "cine-glass-control",
+                )}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={FIGMA_ICONS.pin} alt="" width={16} height={16} className="size-4" />
+                <span>{city}</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={FIGMA_ICONS.chevron}
+                  alt=""
+                  width={16}
+                  height={16}
+                  className={cn("size-4 transition-transform duration-200", cityOpen && "rotate-180")}
+                />
+              </button>
+              {cityOpen && (
+                <div
+                  onMouseLeave={() => setHoveredCity(null)}
+                  className="cine-popover-enter cine-glass-surface absolute right-0 top-12 z-50 w-44 rounded-2xl p-1.5"
+                >
+                  <div className="relative flex flex-col gap-0.5">
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "cine-glass-pill pointer-events-none absolute inset-x-0 top-0",
+                        !cityPill.ready && "transition-none!",
+                      )}
+                      style={{
+                        height: cityPill.height,
+                        transform: `translate3d(0, ${cityPill.top}px, 0)`,
+                        opacity: cityPill.ready ? 1 : 0,
+                      }}
+                    />
+                    {CITIES.map((c) => {
+                      const active = c === city;
+                      const lit = c === (hoveredCity ?? city);
+                      return (
+                        <button
+                          key={c}
+                          ref={(el) => {
+                            cityBtnRefs.current[c] = el;
+                          }}
+                          type="button"
+                          onClick={() => selectCity(c)}
+                          onMouseEnter={() => setHoveredCity(c)}
+                          onFocus={() => setHoveredCity(c)}
+                          onBlur={() => setHoveredCity(null)}
+                          className={cn(
+                            "relative z-10 block w-full cursor-pointer rounded-full px-3.5 py-2 text-left text-sm transition-colors duration-150",
+                            active ? "font-semibold text-cine-maroon" : "font-medium text-cine-ink",
+                            lit && !active && "text-cine-maroon",
+                          )}
+                        >
+                          {c}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-          {/* Pill Lokasi (desktop & tablet; mobile di dalam drawer) */}
-          <div ref={cityMenuRef} className="relative hidden sm:block">
+            {/* Keranjang F&B badge (tablet & desktop; di HP tampil di dalam drawer) */}
+            {count > 0 && (
+              <Link
+                href="/fnb"
+                className="relative hidden rounded-xl border border-cine-border bg-cine-cream px-2.5 py-1.5 text-xs font-semibold text-cine-ink transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-cine-maroon active:scale-95 sm:inline-flex"
+                aria-label="Keranjang F&B"
+              >
+                F&B ({count})
+              </Link>
+            )}
+
+            {/* Ikon Notifikasi */}
+            <NotificationBell />
+
+            {/* User Profile / Daftar-Masuk */}
+            {displayName ? (
+              <Link
+                href="/account"
+                className="flex items-center gap-2 rounded-full transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-80 active:scale-[0.98]"
+              >
+                <Avatar name={displayName} src={avatarUrl} size="sm" />
+                <span className="hidden max-w-28 truncate text-sm font-semibold text-cine-ink sm:inline">
+                  {displayName}
+                </span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex h-9 items-center justify-center rounded-[10px] border border-cine-border bg-cine-cream px-3 text-xs font-medium text-black transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-cine-border/40 active:scale-[0.98] sm:px-4 sm:text-sm"
+              >
+                <span className="sm:hidden">Masuk</span>
+                <span className="hidden sm:inline">Daftar/Masuk</span>
+              </Link>
+            )}
+
+            {/* Tombol Hamburger untuk mobile & tablet (< lg) */}
             <button
               type="button"
               onClick={() => {
-                setMobileMenuOpen(false);
-                setCityOpen((v) => !v);
+                setCityOpen(false);
+                setMobileMenuOpen((v) => !v);
               }}
-              aria-expanded={cityOpen}
-              className={cn(
-                "flex cursor-pointer items-center gap-2 rounded-full px-4 py-[9px] text-sm font-medium text-cine-ink active:scale-[0.98]",
-                cityOpen ? "cine-glass-pill text-cine-maroon" : "cine-glass-control",
+              aria-label={mobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-drawer"
+              className="cine-glass-control relative flex size-9 cursor-pointer items-center justify-center rounded-xl text-cine-ink active:scale-95 sm:size-10 lg:hidden"
+            >
+              {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+              {count > 0 && !mobileMenuOpen && (
+                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-cine-maroon text-[10px] font-bold text-white sm:hidden">
+                  {count}
+                </span>
               )}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={FIGMA_ICONS.pin} alt="" width={16} height={16} className="size-4" />
-              <span>{city}</span>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={FIGMA_ICONS.chevron}
-                alt=""
-                width={16}
-                height={16}
-                className={cn("size-4 transition-transform duration-200", cityOpen && "rotate-180")}
-              />
             </button>
-            {cityOpen && (
-              <div
-                onMouseLeave={() => setHoveredCity(null)}
-                className="cine-popover-enter cine-glass-surface absolute right-0 top-12 z-50 w-44 rounded-2xl p-1.5"
-              >
-                <div className="relative flex flex-col gap-0.5">
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "cine-glass-pill pointer-events-none absolute inset-x-0 top-0",
-                      !cityPill.ready && "transition-none!",
-                    )}
-                    style={{
-                      height: cityPill.height,
-                      transform: `translate3d(0, ${cityPill.top}px, 0)`,
-                      opacity: cityPill.ready ? 1 : 0,
-                    }}
-                  />
-                  {CITIES.map((c) => {
-                    const active = c === city;
-                    const lit = c === (hoveredCity ?? city);
-                    return (
-                      <button
-                        key={c}
-                        ref={(el) => {
-                          cityBtnRefs.current[c] = el;
-                        }}
-                        type="button"
-                        onClick={() => selectCity(c)}
-                        onMouseEnter={() => setHoveredCity(c)}
-                        onFocus={() => setHoveredCity(c)}
-                        onBlur={() => setHoveredCity(null)}
-                        className={cn(
-                          "relative z-10 block w-full cursor-pointer rounded-full px-3.5 py-2 text-left text-sm transition-colors duration-150",
-                          active ? "font-semibold text-cine-maroon" : "font-medium text-cine-ink",
-                          lit && !active && "text-cine-maroon",
-                        )}
-                      >
-                        {c}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
+        </nav>
+      </header>
 
-          {/* Keranjang F&B badge jika ada item */}
-          {count > 0 && (
-            <Link
-              href="/fnb"
-              className="relative rounded-xl border border-cine-border bg-cine-cream px-2 py-1 text-[11px] font-semibold text-cine-ink transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-cine-maroon active:scale-95 sm:px-2.5 sm:py-1.5 sm:text-xs"
-              aria-label="Keranjang F&B"
-            >
-              F&B ({count})
-            </Link>
-          )}
-
-          {/* Ikon Notifikasi */}
-          <NotificationBell />
-
-          {/* User Profile / Daftar-Masuk */}
-          {displayName ? (
-            <Link
-              href="/account"
-              className="flex items-center gap-2 rounded-full transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-80 active:scale-[0.98]"
-            >
-              <Avatar name={displayName} src={avatarUrl} size="sm" />
-              <span className="hidden max-w-28 truncate text-sm font-semibold text-cine-ink sm:inline">
-                {displayName}
-              </span>
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex h-9 items-center justify-center rounded-[10px] border border-cine-border bg-cine-cream px-3 text-xs font-normal text-black transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-cine-border/40 active:scale-[0.98] sm:px-4 sm:text-sm"
-            >
-              <span className="sm:hidden">Masuk</span>
-              <span className="hidden sm:inline">Daftar/Masuk</span>
-            </Link>
-          )}
-
-          {/* Tombol Hamburger untuk mobile & tablet (< lg) */}
-          <button
-            type="button"
-            onClick={() => {
-              setCityOpen(false);
-              setMobileMenuOpen((v) => !v);
-            }}
-            aria-label={mobileMenuOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
-            aria-expanded={mobileMenuOpen}
-            aria-controls="mobile-nav-drawer"
-            className="cine-glass-control flex size-9 cursor-pointer items-center justify-center rounded-xl text-cine-ink active:scale-95 sm:size-10 lg:hidden"
-          >
-            {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </button>
-        </div>
-      </nav>
-
-      {/* Drawer Navigasi Mobile & Tablet */}
+      {/* Drawer Navigasi Mobile & Tablet — di luar <header> agar tidak terjebak backdrop-filter / z-index */}
       {mobileMenuOpen && (
         <>
           <div
             aria-hidden
             onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 top-[64px] z-40 bg-black/25 backdrop-blur-[2px] sm:top-[72px] lg:hidden"
+            className="fixed inset-0 top-[64px] z-[60] bg-black/30 backdrop-blur-[2px] sm:top-[72px] lg:hidden"
           />
           <div
             id="mobile-nav-drawer"
             role="dialog"
             aria-label="Menu navigasi"
-            className="cine-glass-surface cine-drawer-in fixed inset-x-3 top-[72px] z-50 max-h-[calc(100dvh-88px)] overflow-y-auto rounded-[24px] p-4 sm:inset-x-auto sm:right-6 sm:top-[80px] sm:w-[360px] lg:hidden"
+            className="cine-glass-surface cine-drawer-in fixed inset-x-3 top-[72px] z-[70] max-h-[calc(100dvh-88px)] overflow-y-auto rounded-[24px] p-4 sm:inset-x-auto sm:right-6 sm:top-[80px] sm:w-[360px] lg:hidden"
           >
             <div className="flex flex-col gap-1">
               {navItems.map((item) => {
@@ -373,7 +380,7 @@ export default function Navbar() {
                     href={item.href ?? "/"}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center justify-between rounded-2xl px-4 py-3 text-sm transition-colors duration-150",
+                      "flex min-h-[44px] items-center justify-between rounded-2xl px-4 py-3 text-sm transition-colors duration-150",
                       active
                         ? "cine-glass-pill font-semibold text-cine-maroon"
                         : "font-medium text-cine-ink hover:bg-cine-cream/80",
@@ -467,6 +474,6 @@ export default function Navbar() {
           </div>
         </>
       )}
-    </header>
+    </>
   );
 }

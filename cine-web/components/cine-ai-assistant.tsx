@@ -126,7 +126,7 @@ export default function CineAiAssistant() {
       {open && (
         <section
           aria-label="CINÉ AI Rekomendasi Film"
-          className="cine-popover-enter cine-glass-surface mb-3 flex h-[min(520px,calc(100dvh-10.5rem))] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[24px] sm:h-[min(560px,calc(100dvh-7rem))] sm:w-[400px]"
+          className="cine-popover-enter cine-glass-surface mb-3 flex h-[min(460px,calc(100dvh-13.5rem))] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[24px] sm:h-[min(560px,calc(100dvh-7.5rem))] sm:w-[400px]"
         >
           {/* Header */}
           <header className="flex items-center justify-between gap-2 bg-cine-maroon px-4 py-3.5 text-white">

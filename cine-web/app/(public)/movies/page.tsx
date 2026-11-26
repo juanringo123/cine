@@ -1,5 +1,5 @@
 import MoviesCatalog from "@/components/movies-catalog";
-import { createClient } from "@/lib/supabase/server";
+import { getCachedMoviesCatalog } from "@/lib/public-catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -8,26 +8,16 @@ export default async function MoviesPage({
 }: {
   searchParams: Promise<{ status?: string; q?: string }>;
 }) {
-  const { status, q } = await searchParams;
-  const supabase = await createClient();
-
-  const [moviesRes, genresRes, movieGenresRes] = await Promise.all([
-    supabase
-      .from("movies")
-      .select("*")
-      .in("status", ["now_showing", "coming_soon"])
-      .order("release_date", { ascending: false }),
-    supabase.from("genres").select("*").order("name"),
-    supabase.from("movie_genres").select("movie_id, genre_id"),
+  const [{ status, q }, catalog] = await Promise.all([
+    searchParams,
+    getCachedMoviesCatalog(),
   ]);
 
-  const loadError = moviesRes.error ?? genresRes.error;
-
-  const genreNameById = new Map((genresRes.data ?? []).map((g) => [g.id, g.name]));
+  const genreNameById = new Map(catalog.genres.map((g) => [g.id, g.name]));
   const movieGenreIds: Record<string, string[]> = {};
   const movieGenreLabel: Record<string, string> = {};
 
-  (movieGenresRes.data ?? []).forEach((mg) => {
+  catalog.movieGenres.forEach((mg) => {
     movieGenreIds[mg.movie_id] = [...(movieGenreIds[mg.movie_id] ?? []), mg.genre_id];
     if (!movieGenreLabel[mg.movie_id]) {
       const name = genreNameById.get(mg.genre_id);
@@ -39,16 +29,16 @@ export default async function MoviesPage({
 
   return (
     <>
-      {loadError && (
+      {catalog.errorMessage && (
         <div className="cine-container pt-6">
           <div className="rounded-xl border border-cine-maroon/30 bg-cine-cream px-4 py-3 text-sm text-cine-maroon">
-            Gagal memuat daftar film ({loadError.message}). Silakan coba beberapa saat lagi.
+            Gagal memuat daftar film ({catalog.errorMessage}). Silakan coba beberapa saat lagi.
           </div>
         </div>
       )}
       <MoviesCatalog
-        movies={moviesRes.data ?? []}
-        genres={genresRes.data ?? []}
+        movies={catalog.movies}
+        genres={catalog.genres}
         movieGenreIds={movieGenreIds}
         movieGenreLabel={movieGenreLabel}
         initialStatus={initialStatus}

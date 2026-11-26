@@ -7,14 +7,20 @@ let cachedRootServiceKey: string | null = null;
 
 function readRootServiceKey(): string {
   if (cachedRootServiceKey !== null) return cachedRootServiceKey;
+  if (process.env.VERCEL) {
+    cachedRootServiceKey = "";
+    return "";
+  }
   const candidates = [
     path.resolve(process.cwd(), ".env"),
     path.resolve(process.cwd(), "..", ".env"),
   ];
   for (const file of candidates) {
     try {
-      if (!fs.existsSync(file)) continue;
-      const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+      if (!fs.existsSync(/*turbopackIgnore: true*/ file)) continue;
+      const lines = fs
+        .readFileSync(/*turbopackIgnore: true*/ file, "utf8")
+        .split(/\r?\n/);
       for (const line of lines) {
         if (!line || line.startsWith("#") || !line.includes("=")) continue;
         const idx = line.indexOf("=");

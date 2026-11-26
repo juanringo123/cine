@@ -1,15 +1,9 @@
 import CinemaListClient from "@/components/cinema-list-client";
-import { createClient } from "@/lib/supabase/server";
+import { getCachedCinemasCatalog } from "@/lib/public-catalog";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function CinemaListPage() {
-  const supabase = await createClient();
-  const { data: cinemas } = await supabase
-    .from("cinemas")
-    .select("*")
-    .eq("is_active", true)
-    .order("name");
-
-  return <CinemaListClient cinemas={cinemas ?? []} />;
+  const cinemas = await getCachedCinemasCatalog();
+  return <CinemaListClient cinemas={cinemas} />;
 }

@@ -80,14 +80,14 @@ export default function OrderSummaryActions({
       {isPending && (
         <>
           <h2 className="text-lg font-bold text-cine-ink">Kode promo</h2>
-          <form onSubmit={applyPromo} className="flex gap-3">
+          <form onSubmit={applyPromo} className="flex gap-2.5 sm:gap-3">
             <Input
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value)}
               placeholder="Masukkan kode promo"
-              className="flex-1"
+              className="min-w-0 flex-1"
             />
-            <Button type="submit" variant="outline" disabled={checking} className="px-6">
+            <Button type="submit" variant="outline" disabled={checking} className="shrink-0 px-5 sm:px-6">
               {checking ? "..." : "Pakai"}
             </Button>
           </form>

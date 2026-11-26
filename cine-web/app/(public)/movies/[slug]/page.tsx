@@ -115,7 +115,7 @@ export default async function MovieDetail({
   return (
     <main className="pb-20">
       {/* Backdrop Hero + Play Trailer YouTube (Figma 1:742) */}
-      <div className="relative h-[200px] w-full overflow-hidden bg-cine-maroon-deep sm:h-[300px] lg:h-[340px]">
+      <div className="relative h-[220px] w-full overflow-hidden bg-cine-maroon-deep sm:h-[300px] lg:h-[340px]">
         <Image
           src={backdrop}
           alt={movie.title}
@@ -133,7 +133,7 @@ export default async function MovieDetail({
       <div className="cine-container relative pt-6 xl:pt-10">
         <div className="grid gap-8 md:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[252px_minmax(0,1fr)_356px] xl:gap-10">
           {/* Poster Overlap */}
-          <div className="-mt-24 sm:-mt-32 md:-mt-28 xl:-mt-[190px]">
+          <div className="-mt-12 sm:-mt-16 md:-mt-28 xl:-mt-[190px]">
             <div className="relative mx-auto h-[300px] w-[200px] overflow-hidden rounded-[16px] border-2 border-white bg-cine-cream shadow-lg md:mx-0 xl:h-[378px] xl:w-[252px]">
               <Image
                 src={poster}

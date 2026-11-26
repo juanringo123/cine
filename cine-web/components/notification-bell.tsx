@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/../supabase/types/database";
 import { FIGMA_ICONS } from "@/lib/assets";
@@ -19,16 +20,29 @@ export default function NotificationBell() {
   const [items, setItems] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
+      const target = e.target as Node;
+      if (
+        menuRef.current?.contains(target) ||
+        popoverRef.current?.contains(target)
+      ) {
+        return;
       }
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
     };
     window.addEventListener("mousedown", onDown);
-    return () => window.removeEventListener("mousedown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -120,44 +134,57 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <div className="cine-popover-enter cine-glass-surface fixed inset-x-3 top-[70px] z-50 w-auto overflow-hidden rounded-2xl p-2 sm:absolute sm:inset-x-auto sm:right-0 sm:top-10 sm:w-80">
-          <div className="max-h-[380px] space-y-1 overflow-y-auto pr-0.5">
-            {items.length === 0 ? (
-              <p className="p-3 text-sm text-cine-muted">Belum ada notifikasi.</p>
-            ) : (
-              items.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => openNotification(item)}
-                  className={`flex w-full cursor-pointer items-start gap-2.5 rounded-xl p-2.5 text-left text-sm transition-colors duration-200 hover:bg-cine-cream/90 ${
-                    item.read_at ? "opacity-65" : "bg-white/60"
-                  }`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-cine-ink">{item.title}</p>
-                    <p className="line-clamp-2 text-xs text-cine-muted">{item.body}</p>
-                  </div>
-                  {!item.read_at && (
-                    <span
-                      className="mt-1.5 size-2 shrink-0 rounded-full bg-cine-maroon"
-                      aria-label="Belum dibaca"
-                    />
-                  )}
-                </button>
-              ))
-            )}
-          </div>
-          <Link
-            href="/notifications"
-            onClick={() => setOpen(false)}
-            className="mt-1 block border-t border-cine-border/80 pt-2.5 pb-1 text-center text-xs font-semibold text-cine-maroon hover:underline"
-          >
-            Lihat semua notifikasi
-          </Link>
-        </div>
-      )}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <>
+            <div
+              aria-hidden
+              onClick={() => setOpen(false)}
+              className="fixed inset-0 z-[65] bg-black/20 sm:hidden"
+            />
+            <div
+              ref={popoverRef}
+              className="cine-popover-enter cine-glass-surface fixed inset-x-3 top-[70px] z-[70] w-auto overflow-hidden rounded-2xl p-2 sm:left-auto sm:right-6 sm:top-[76px] sm:w-80"
+            >
+              <div className="max-h-[min(380px,calc(100dvh-160px))] space-y-1 overflow-y-auto pr-0.5">
+                {items.length === 0 ? (
+                  <p className="p-3 text-sm text-cine-muted">Belum ada notifikasi.</p>
+                ) : (
+                  items.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => openNotification(item)}
+                      className={`flex w-full cursor-pointer items-start gap-2.5 rounded-xl p-2.5 text-left text-sm transition-colors duration-200 hover:bg-cine-cream/90 ${
+                        item.read_at ? "opacity-65" : "bg-white/60"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-cine-ink">{item.title}</p>
+                        <p className="line-clamp-2 text-xs text-cine-muted">{item.body}</p>
+                      </div>
+                      {!item.read_at && (
+                        <span
+                          className="mt-1.5 size-2 shrink-0 rounded-full bg-cine-maroon"
+                          aria-label="Belum dibaca"
+                        />
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+              <Link
+                href="/notifications"
+                onClick={() => setOpen(false)}
+                className="mt-1 block border-t border-cine-border/80 pb-1 pt-2.5 text-center text-xs font-semibold text-cine-maroon hover:underline"
+              >
+                Lihat semua notifikasi
+              </Link>
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }

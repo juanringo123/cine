@@ -107,10 +107,10 @@ export function SectionHeading({
   actionLabel?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <h2 className="text-2xl font-bold text-cine-ink">{title}</h2>
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="min-w-0 truncate text-xl font-bold text-cine-ink sm:text-2xl">{title}</h2>
       {href && (
-        <Link href={href} className="text-sm font-medium text-cine-maroon transition-colors duration-200 hover:underline">
+        <Link href={href} className="shrink-0 text-sm font-medium text-cine-maroon transition-colors duration-200 hover:underline">
           {actionLabel}
         </Link>
       )}
@@ -126,15 +126,15 @@ export function BackHeader({
   href: string;
 }) {
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex items-center gap-3 sm:gap-5">
       <Link
         href={href}
         aria-label="Kembali"
-        className="inline-flex size-9 items-center justify-center rounded-xl text-[32px] font-bold leading-none text-black transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-x-0.5 hover:bg-cine-cream active:scale-95"
+        className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl text-[26px] font-bold leading-none text-black transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-x-0.5 hover:bg-cine-cream active:scale-95 sm:text-[32px]"
       >
         &lt;
       </Link>
-      <h1 className="text-[32px] font-bold leading-tight text-cine-ink">{title}</h1>
+      <h1 className="min-w-0 truncate text-[22px] font-bold leading-tight text-cine-ink sm:text-[32px]">{title}</h1>
     </div>
   );
 }

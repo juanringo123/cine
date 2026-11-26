@@ -19,7 +19,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Navigasi bawah"
-      className="cine-glass-nav fixed inset-x-0 bottom-0 z-40 border-t border-cine-border/80 sm:hidden"
+      className="cine-glass-nav fixed inset-x-0 bottom-0 z-30 border-t border-cine-border/80 pb-[env(safe-area-inset-bottom)] sm:hidden"
     >
       <div className="grid grid-cols-5 px-1.5 py-1">
         {ITEMS.map((item) => {
