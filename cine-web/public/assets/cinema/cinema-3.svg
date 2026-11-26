@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <rect width="320" height="200" rx="20" fill="#2B2B2B"/>
+  <rect x="18" y="18" width="284" height="164" rx="14" fill="#3B151E" stroke="#D9BC88" stroke-opacity="0.4"/>
+  <path d="M46 56Q160 36 274 56V116Q160 98 46 116V56Z" fill="#F7F3E4"/>
+  <text x="160" y="90" text-anchor="middle" fill="#6D1F2E" font-family="sans-serif" font-size="18" font-weight="700" letter-spacing="3">IMAX · DOLBY</text>
+  <rect x="74" y="138" width="172" height="14" rx="7" fill="#D9BC88"/>
+</svg>

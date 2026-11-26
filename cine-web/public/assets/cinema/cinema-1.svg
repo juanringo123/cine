@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <rect width="320" height="200" rx="20" fill="#6D1F2E"/>
+  <rect x="18" y="18" width="284" height="164" rx="14" fill="#521622" stroke="#D9BC88" stroke-opacity="0.35"/>
+  <path d="M52 54H268V84C268 92 262 98 254 98H66C58 98 52 92 52 84V54Z" fill="#F7F3E4"/>
+  <text x="160" y="83" text-anchor="middle" fill="#6D1F2E" font-family="sans-serif" font-size="22" font-weight="700" letter-spacing="4">CINÉ</text>
+  <rect x="78" y="114" width="38" height="50" rx="6" fill="#D9BC88" fill-opacity="0.85"/>
+  <rect x="141" y="114" width="38" height="50" rx="6" fill="#D9BC88"/>
+  <rect x="204" y="114" width="38" height="50" rx="6" fill="#D9BC88" fill-opacity="0.85"/>
+</svg>

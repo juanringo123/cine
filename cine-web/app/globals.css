@@ -1,0 +1,382 @@
+@import "tailwindcss";
+
+/* Token desain resmi CINÉ — diambil dari Figma Dev Mode (file qVNryAK7vZXZ92rlSgzdHQ) */
+@theme {
+  /* Warna utama */
+  --color-cine-bg: #ffffff;
+  --color-cine-cream: #f7f3e4;
+  --color-cine-sand: #f7f3e4;
+  --color-cine-border: #e0d8c0;
+  --color-cine-seat-border: #d9cba5;
+  --color-cine-seat-booked: #b8b09f;
+  --color-cine-ticket-dash: #c9b98f;
+
+  --color-cine-maroon: #6d1f2e;
+  --color-cine-maroon-dark: #541723;
+  --color-cine-maroon-deep: #2e2a2b;
+
+  --color-cine-gold: #d9bc88;
+  --color-cine-gold-dark: #c5a46b;
+
+  --color-cine-ink: #2b2b2b;
+  --color-cine-muted: #555555;
+  --color-cine-placeholder: #8a8a8a;
+
+  /* Tipografi */
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+
+  --text-page-title: 2rem;
+  --text-page-title--line-height: 1.2;
+  --text-movie-title: 2.5rem;
+  --text-movie-title--line-height: 1.15;
+  --text-section: 1.5rem;
+  --text-section--line-height: 1.25;
+  --text-card-title: 0.875rem;
+  --text-card-title--line-height: 1.3;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.3;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.3;
+
+  --tracking-brand: 0.08em;
+  --tracking-label: 0.01em;
+
+  /* Radius */
+  --radius-ticket: 1.75rem;
+  --radius-panel: 1.5rem;
+  --radius-card: 1.25rem;
+  --radius-poster: 1rem;
+  --radius-control: 0.75rem;
+  --radius-pill: 0.625rem;
+  --radius-check: 0.3125rem;
+
+  /* Shadow */
+  --shadow-popover: 0 10px 28px -6px rgb(43 43 43 / 0.12);
+  --shadow-card: 0 1px 2px 0 rgb(43 43 43 / 0.04);
+}
+
+:root {
+  color-scheme: light;
+  --ease-cine: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-card-hover: 0 12px 26px -10px rgb(43 43 43 / 0.14);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cine-bg);
+  color: var(--color-cine-ink);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Container halaman standar Figma (1440px, padding 120px desktop) */
+.cine-container {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1440px;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .cine-container {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cine-container {
+    padding-inline: 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .cine-container {
+    padding-inline: 7.5rem;
+  }
+}
+
+/* Kartu standar CINÉ (panel ringkasan, promo, e-ticket) */
+.cine-card {
+  background-color: var(--color-cine-cream);
+  border-radius: var(--radius-panel);
+}
+
+.cine-card-bordered {
+  background-color: var(--color-cine-cream);
+  border: 1px solid var(--color-cine-border);
+  border-radius: var(--radius-card);
+}
+
+.cine-label {
+  color: var(--color-cine-ink);
+  font-size: var(--text-label);
+  font-weight: 600;
+  line-height: normal;
+}
+
+.cine-caption {
+  color: var(--color-cine-muted);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  line-height: normal;
+}
+
+.cine-input {
+  width: 100%;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-cine-border);
+  background-color: #ffffff;
+  padding: 0.9375rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-cine-ink);
+  outline: none;
+  transition: border-color 220ms var(--ease-cine), box-shadow 220ms var(--ease-cine), background-color 220ms var(--ease-cine);
+}
+
+.cine-input::placeholder {
+  color: var(--color-cine-placeholder);
+}
+
+.cine-input:focus {
+  border-color: var(--color-cine-maroon);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-cine-gold) 35%, transparent);
+}
+
+.cine-search {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.875rem;
+  border: 1px solid transparent;
+  background-color: var(--color-cine-cream);
+  padding: 0.875rem 1.125rem;
+  transition: border-color 220ms var(--ease-cine), box-shadow 220ms var(--ease-cine), background-color 220ms var(--ease-cine);
+}
+
+.cine-search:focus-within {
+  border-color: color-mix(in srgb, var(--color-cine-maroon) 35%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-cine-gold) 25%, transparent);
+}
+
+/* Sistem motion halus (GPU-composited) */
+@keyframes cine-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cine-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cine-splash-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cine-splash-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+@keyframes cine-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cine-page-enter {
+  animation: cine-page-in 280ms var(--ease-cine) both;
+}
+
+.cine-popover-enter {
+  animation: cine-popover-in 180ms var(--ease-cine) both;
+  transform-origin: top right;
+}
+
+.cine-splash-in {
+  animation: cine-splash-in 450ms var(--ease-cine) both;
+}
+
+.cine-splash-bar {
+  animation: cine-splash-bar 1.3s var(--ease-cine) infinite;
+}
+
+.cine-drawer-in {
+  animation: cine-drawer-in 220ms var(--ease-cine) both;
+  transform-origin: top right;
+}
+
+.cine-card-hover {
+  transition:
+    transform 300ms var(--ease-cine),
+    box-shadow 300ms var(--ease-cine),
+    border-color 240ms var(--ease-cine),
+    background-color 240ms var(--ease-cine);
+  will-change: transform;
+}
+
+.cine-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.cine-img-zoom {
+  transition: transform 500ms var(--ease-cine);
+  will-change: transform;
+}
+
+/* Liquid Glass (terinspirasi pill frosted glass dengan pendaran maroon CINÉ) */
+.cine-glass-nav {
+  background-color: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+}
+
+.cine-glass-surface {
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.96) 0%,
+    rgba(247, 243, 228, 0.93) 100%
+  );
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.98),
+    0 0 0 1px color-mix(in srgb, var(--color-cine-border) 75%, transparent),
+    0 16px 36px -8px rgba(43, 43, 43, 0.18);
+}
+
+.cine-glass-control {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.76) 0%,
+    rgba(247, 243, 228, 0.54) 100%
+  );
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  backdrop-filter: blur(14px) saturate(170%);
+  border: 1px solid color-mix(in srgb, var(--color-cine-border) 85%, rgba(255, 255, 255, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 2px 8px -4px rgba(43, 43, 43, 0.12);
+  transition:
+    background 220ms var(--ease-cine),
+    border-color 220ms var(--ease-cine),
+    box-shadow 220ms var(--ease-cine),
+    transform 200ms var(--ease-cine);
+}
+
+.cine-glass-control:hover {
+  border-color: color-mix(in srgb, var(--color-cine-maroon) 30%, rgba(255, 255, 255, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    0 6px 16px -6px color-mix(in srgb, var(--color-cine-maroon) 20%, transparent);
+}
+
+.cine-glass-track {
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--color-cine-cream) 72%, rgba(255, 255, 255, 0.55));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--color-cine-border) 85%, transparent);
+  box-shadow: inset 0 1px 2px rgba(43, 43, 43, 0.04);
+}
+
+@media (min-width: 640px) {
+  .cine-glass-track {
+    border-radius: 9999px;
+  }
+}
+
+.cine-glass-pill {
+  border-radius: 9999px;
+  background: radial-gradient(
+    115% 140% at 24% 0%,
+    color-mix(in srgb, var(--color-cine-maroon) 24%, transparent) 0%,
+    color-mix(in srgb, var(--color-cine-cream) 78%, rgba(255, 255, 255, 0.65)) 58%,
+    color-mix(in srgb, var(--color-cine-gold) 24%, rgba(255, 255, 255, 0.5)) 100%
+  );
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid color-mix(in srgb, var(--color-cine-maroon) 26%, rgba(255, 255, 255, 0.8));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.92),
+    inset 0 -1px 2px color-mix(in srgb, var(--color-cine-maroon) 12%, transparent),
+    0 6px 18px -6px color-mix(in srgb, var(--color-cine-maroon) 24%, transparent);
+  transition:
+    transform 360ms var(--ease-cine),
+    width 360ms var(--ease-cine),
+    height 360ms var(--ease-cine),
+    opacity 220ms var(--ease-cine);
+  will-change: transform, width;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .cine-page-enter,
+  .cine-popover-enter,
+  .cine-splash-in,
+  .cine-splash-bar,
+  .cine-drawer-in {
+    animation: none;
+  }
+  .cine-card-hover,
+  .cine-img-zoom,
+  .cine-glass-pill {
+    transition: none;
+    will-change: auto;
+  }
+  .cine-card-hover:hover {
+    transform: none;
+  }
+}
+
+.cine-divider {
+  height: 1px;
+  width: 100%;
+  background-color: var(--color-cine-border);
+}
+
+/* Sembunyikan scrollbar horizontal pada carousel Home namun tetap bisa di-scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

@@ -1,0 +1,46 @@
+# ============================================================
+# CINÉ — .gitignore
+# ============================================================
+
+# --- Rahasia / environment (JANGAN di-commit) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+service-account*.json
+
+# --- Node / Next.js (cine-web) ---
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vercel
+
+# --- Go API ---
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/bin/
+/.dist/
+/dist/
+
+# --- Supabase CLI lokal ---
+supabase/.branches/
+supabase/.temp/
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
