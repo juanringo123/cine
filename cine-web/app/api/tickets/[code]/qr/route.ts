@@ -23,7 +23,7 @@ export async function GET(
 
   const { data: booking } = await supabase
     .from("bookings")
-    .select("id")
+    .select("id, booking_code, qr_token")
     .eq("booking_code", cleanCode)
     .maybeSingle();
 
@@ -31,7 +31,7 @@ export async function GET(
     ? { data: null }
     : await supabase
         .from("fnb_orders")
-        .select("id")
+        .select("id, order_code, qr_token")
         .eq("order_code", cleanCode)
         .maybeSingle();
 
@@ -39,8 +39,12 @@ export async function GET(
     return NextResponse.json({ error: "Tiket atau pesanan tidak ditemukan" }, { status: 404 });
   }
 
+  const qrPayload = booking
+    ? `CINE:TICKET:${booking.booking_code}:${booking.qr_token}`
+    : `CINE:FNB:${order!.order_code}:${order!.qr_token}`;
+
   try {
-    const pngBuffer = await QRCode.toBuffer(cleanCode, {
+    const pngBuffer = await QRCode.toBuffer(qrPayload, {
       type: "png",
       width: 280,
       margin: 2,

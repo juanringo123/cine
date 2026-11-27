@@ -33,7 +33,9 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
 
   if (!booking && !order) notFound();
 
-  const qrCodeText = booking?.booking_code ?? order!.order_code;
+  const qrCodeText = booking
+    ? `CINE:TICKET:${booking.booking_code}:${booking.qr_token}`
+    : `CINE:FNB:${order!.order_code}:${order!.qr_token}`;
   const qrUrl = await QRCode.toDataURL(qrCodeText, {
     width: 280,
     margin: 2,
