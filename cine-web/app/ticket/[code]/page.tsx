@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
+import QRCode from "qrcode";
 import TicketActions from "@/components/ticket-actions";
 import { BackHeader } from "@/components/ui/primitives";
 import { FIGMA_ICONS, resolveFnbImage, resolveMoviePoster } from "@/lib/assets";
@@ -32,7 +33,12 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
 
   if (!booking && !order) notFound();
 
-  const qrUrl = `/api/tickets/${encodeURIComponent(code)}/qr`;
+  const qrCodeText = booking?.booking_code ?? order!.order_code;
+  const qrUrl = await QRCode.toDataURL(qrCodeText, {
+    width: 280,
+    margin: 2,
+    color: { dark: "#2b2b2b", light: "#ffffff" },
+  });
 
   if (booking) {
     const [{ data: seats }, { data: showtime }] = await Promise.all([

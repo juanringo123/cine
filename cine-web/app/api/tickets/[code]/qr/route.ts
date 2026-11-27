@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import QRCode from "qrcode";
 import { createClient } from "@/lib/supabase/server";
 
-/** Proxy aman untuk QR PNG: cek login & kepemilikan via RLS, lalu kirim X-Internal-Key ke Go API. */
+/** Generate QR PNG aman: cek login & kepemilikan via RLS, lalu buat PNG lokal dengan library qrcode. */
 export async function GET(
   _request: Request,
   context: { params: Promise<{ code: string }> },
@@ -38,54 +39,15 @@ export async function GET(
     return NextResponse.json({ error: "Tiket atau pesanan tidak ditemukan" }, { status: 404 });
   }
 
-  const endpoint = booking ? "tickets" : "orders";
-  const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
-  const canTryGoApi =
-    Boolean(configuredApiUrl) &&
-    !(process.env.VERCEL && /localhost|127\.0\.0\.1/i.test(configuredApiUrl));
-
-  if (canTryGoApi) {
-    try {
-      const response = await fetch(
-        `${configuredApiUrl}/${endpoint}/${encodeURIComponent(cleanCode)}/qr.png`,
-        {
-          headers: { "X-Internal-Key": process.env.INTERNAL_API_KEY ?? "" },
-          cache: "no-store",
-          signal: AbortSignal.timeout(2500),
-        },
-      );
-
-      if (response.ok) {
-        const bytes = await response.arrayBuffer();
-        return new NextResponse(bytes, {
-          status: 200,
-          headers: {
-            "Content-Type": "image/png",
-            "Cache-Control": "private, max-age=300",
-          },
-        });
-      }
-    } catch {
-      // Lanjut ke fallback generator QR PNG agar tetap tampil di Vercel tanpa Go API.
-    }
-  }
-
   try {
-    const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=10&format=png&data=${encodeURIComponent(cleanCode)}`;
-    const qrRes = await fetch(fallbackUrl, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(8000),
+    const pngBuffer = await QRCode.toBuffer(cleanCode, {
+      type: "png",
+      width: 280,
+      margin: 2,
+      color: { dark: "#2b2b2b", light: "#ffffff" },
     });
 
-    if (!qrRes.ok) {
-      return NextResponse.json(
-        { error: "Gagal membuat QR code tiket" },
-        { status: 502 },
-      );
-    }
-
-    const bytes = await qrRes.arrayBuffer();
-    return new NextResponse(bytes, {
+    return new NextResponse(new Uint8Array(pngBuffer), {
       status: 200,
       headers: {
         "Content-Type": "image/png",
@@ -95,7 +57,7 @@ export async function GET(
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Gagal membuat QR code" },
-      { status: 502 },
+      { status: 500 },
     );
   }
 }
