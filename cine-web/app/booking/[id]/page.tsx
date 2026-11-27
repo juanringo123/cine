@@ -98,7 +98,10 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
           <div className="cine-divider" />
 
           <Row label="Kode Booking" value={booking.booking_code} />
-          <Row label="Status" value={booking.status} />
+          <Row
+            label="Status"
+            value={booking.status === "completed" ? "USED (Sudah Digunakan)" : booking.status}
+          />
           {showtime && (
             <Row
               label="Date"

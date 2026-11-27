@@ -6,6 +6,7 @@ import Button from "@/components/ui/button";
 
 type VerifyResult = {
   valid?: boolean;
+  already_used?: boolean;
   kind?: "ticket" | "fnb";
   code?: string;
   status?: string;
@@ -250,28 +251,63 @@ export default function QrScanner() {
           className={`cine-card space-y-3 border p-5 ${
             result.valid
               ? "border-green-600 bg-green-50"
-              : "border-red-700 bg-red-50"
+              : result.already_used
+                ? "border-amber-600 bg-amber-50"
+                : "border-red-700 bg-red-50"
           }`}
         >
-          <p
-            className={`text-lg font-bold ${
-              result.valid ? "text-green-700" : "text-red-700"
-            }`}
-          >
-            {result.valid
-              ? result.kind === "fnb"
-                ? "PESANAN F&B VALID"
-                : "TIKET VALID"
-              : "TIDAK VALID"}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p
+              className={`text-lg font-bold ${
+                result.valid
+                  ? "text-green-700"
+                  : result.already_used
+                    ? "text-amber-800"
+                    : "text-red-700"
+              }`}
+            >
+              {result.valid
+                ? result.kind === "fnb"
+                  ? "PESANAN F&B VALID"
+                  : "TIKET VALID"
+                : result.already_used
+                  ? "SUDAH DIGUNAKAN (USED)"
+                  : "TIDAK VALID"}
+            </p>
+            {(result.valid || result.already_used) && (
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
+                  result.valid
+                    ? "bg-green-700 text-white"
+                    : "bg-amber-700 text-white"
+                }`}
+              >
+                STATUS: USED
+              </span>
+            )}
+          </div>
 
-          {result.valid ? (
+          {result.message && (
+            <p
+              className={`text-xs font-semibold ${
+                result.valid
+                  ? "text-green-800"
+                  : result.already_used
+                    ? "text-amber-900"
+                    : "text-red-700"
+              }`}
+            >
+              {result.message}
+            </p>
+          )}
+
+          {result.valid || result.already_used ? (
             <div className="space-y-1 text-sm text-cine-ink">
               {result.title && <p className="font-bold">{result.title}</p>}
               {result.code && (
                 <p>
                   Kode: <span className="font-mono font-semibold">{result.code}</span> ·{" "}
-                  <span className="uppercase">{result.status}</span>
+                  <span className="font-bold uppercase">{result.status ?? "USED"}</span>
                 </p>
               )}
               {result.cinema && <p>Bioskop: {result.cinema}</p>}
@@ -282,7 +318,7 @@ export default function QrScanner() {
             </div>
           ) : (
             <p className="text-sm text-red-700">
-              {result.message ?? result.error ?? "QR tidak valid."}
+              {result.error ?? (!result.message ? "QR tidak valid." : "")}
               {result.status ? ` (Status: ${result.status})` : ""}
             </p>
           )}

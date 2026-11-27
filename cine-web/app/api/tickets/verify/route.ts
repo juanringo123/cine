@@ -15,7 +15,10 @@ type RpcVerifyResult = {
   order_id?: string;
 };
 
-/** Verifikasi QR petugas langsung via Supabase RPC verify_ticket_qr — hanya admin/staff. */
+/**
+ * Verifikasi QR petugas langsung via Supabase RPC verify_ticket_qr — hanya admin/staff.
+ * Saat valid dan belum pernah dipakai, status langsung diubah ke `completed` (USED) secara atomik.
+ */
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -97,8 +100,40 @@ export async function POST(request: Request) {
       return NextResponse.json(res, { status: 200 });
     }
 
-    // Lengkapi detail tiket / F&B untuk tampilan petugas
+    // Cek apakah tiket / pesanan sudah pernah digunakan (status sudah `completed`)
+    const wasAlreadyUsed = res.status === "completed";
+    let markedUsedNow = false;
+    const nowIso = new Date().toISOString();
+
     if (res.kind === "ticket" && res.booking_id) {
+      if (!wasAlreadyUsed) {
+        const { data: updatedRow, error: updErr } = await admin
+          .from("bookings")
+          .update({ status: "completed", updated_at: nowIso })
+          .eq("id", res.booking_id)
+          .eq("status", "confirmed")
+          .select("id, user_id")
+          .maybeSingle();
+
+        if (updErr) {
+          return NextResponse.json(
+            { valid: false, message: updErr.message },
+            { status: 500 },
+          );
+        }
+
+        markedUsedNow = Boolean(updatedRow);
+        if (updatedRow?.user_id) {
+          void admin.from("notifications").insert({
+            user_id: updatedRow.user_id,
+            title: "Tiket telah digunakan",
+            body: `Tiket ${cleanCode} berhasil dipindai petugas. Selamat menonton!`,
+            type: "booking",
+            data: { booking_id: res.booking_id, booking_code: cleanCode },
+          });
+        }
+      }
+
       const [{ data: booking }, { data: seats }] = await Promise.all([
         admin
           .from("bookings")
@@ -136,8 +171,9 @@ export async function POST(request: Request) {
         ? await admin.from("cinemas").select("name").eq("id", studio.cinema_id).maybeSingle()
         : { data: null };
 
-      return NextResponse.json({
-        ...res,
+      const details = {
+        kind: "ticket" as const,
+        code: cleanCode,
         title: movie?.title ?? cleanCode,
         cinema: cinema?.name ?? "CINÉ",
         studio: studio?.name ?? "-",
@@ -145,10 +181,56 @@ export async function POST(request: Request) {
           ? `${showtime.show_date} · ${showtime.start_time.slice(0, 5)}`
           : "-",
         seats: (seats ?? []).map((s) => s.seat_label_snapshot).join(", ") || "-",
+      };
+
+      if (wasAlreadyUsed || !markedUsedNow) {
+        return NextResponse.json({
+          ...details,
+          valid: false,
+          already_used: true,
+          status: "used",
+          message: "Tiket ini sudah pernah digunakan (USED).",
+        });
+      }
+
+      return NextResponse.json({
+        ...details,
+        valid: true,
+        already_used: false,
+        status: "used",
+        message: "Tiket valid — status langsung diubah menjadi USED.",
       });
     }
 
     if (res.kind === "fnb" && res.order_id) {
+      if (!wasAlreadyUsed) {
+        const { data: updatedRow, error: updErr } = await admin
+          .from("fnb_orders")
+          .update({ status: "completed", updated_at: nowIso })
+          .eq("id", res.order_id)
+          .in("status", ["paid", "preparing", "ready"])
+          .select("id, user_id")
+          .maybeSingle();
+
+        if (updErr) {
+          return NextResponse.json(
+            { valid: false, message: updErr.message },
+            { status: 500 },
+          );
+        }
+
+        markedUsedNow = Boolean(updatedRow);
+        if (updatedRow?.user_id) {
+          void admin.from("notifications").insert({
+            user_id: updatedRow.user_id,
+            title: "Pesanan F&B telah diambil",
+            body: `Pesanan ${cleanCode} berhasil dipindai petugas dan status berubah menjadi USED.`,
+            type: "fnb",
+            data: { fnb_order_id: res.order_id, order_code: cleanCode },
+          });
+        }
+      }
+
       const [{ data: order }, { data: items }] = await Promise.all([
         admin
           .from("fnb_orders")
@@ -165,8 +247,9 @@ export async function POST(request: Request) {
         ? await admin.from("cinemas").select("name").eq("id", order.cinema_id).maybeSingle()
         : { data: null };
 
-      return NextResponse.json({
-        ...res,
+      const details = {
+        kind: "fnb" as const,
+        code: cleanCode,
         title: `Pesanan F&B (${cleanCode})`,
         cinema: cinema?.name ?? "CINÉ",
         schedule: order
@@ -175,6 +258,24 @@ export async function POST(request: Request) {
         items: (items ?? [])
           .map((i) => `${i.quantity}x ${i.item_name_snapshot}`)
           .join(", "),
+      };
+
+      if (wasAlreadyUsed || !markedUsedNow) {
+        return NextResponse.json({
+          ...details,
+          valid: false,
+          already_used: true,
+          status: "used",
+          message: "Pesanan F&B ini sudah pernah diambil (USED).",
+        });
+      }
+
+      return NextResponse.json({
+        ...details,
+        valid: true,
+        already_used: false,
+        status: "used",
+        message: "Pesanan F&B valid — status langsung diubah menjadi USED.",
       });
     }
 

@@ -93,7 +93,17 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
               <h2 className="text-[28px] font-bold leading-tight text-cine-ink">
                 {movie?.title ?? booking.booking_code}
               </h2>
-              <p className="text-sm font-bold text-cine-ink">{booking.booking_code} · {booking.status}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-bold text-cine-ink">
+                  {booking.booking_code} ·{" "}
+                  {booking.status === "completed" ? "USED" : booking.status}
+                </p>
+                {booking.status === "completed" && (
+                  <span className="rounded-full bg-cine-maroon px-2.5 py-0.5 text-[11px] font-bold uppercase text-white">
+                    Sudah Digunakan (USED)
+                  </span>
+                )}
+              </div>
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-cine-muted">
                 {showtime && (
@@ -164,6 +174,17 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
           </div>
 
           <div className="flex min-w-0 flex-1 flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-bold text-cine-ink">
+                {order!.order_code} ·{" "}
+                {order!.status === "completed" ? "USED" : order!.status}
+              </p>
+              {order!.status === "completed" && (
+                <span className="rounded-full bg-cine-maroon px-2.5 py-0.5 text-[11px] font-bold uppercase text-white">
+                  Sudah Diambil (USED)
+                </span>
+              )}
+            </div>
             <div className="space-y-2.5">
               {items?.map((item) => (
                 <div key={item.id} className="text-sm">

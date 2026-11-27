@@ -60,7 +60,8 @@ export default async function MyBookings({
                     {formatTanggal(row.schedule_date)} · {row.schedule_time.slice(0, 5)} · {row.venue}
                   </p>
                   <p className="text-xs font-medium text-cine-ink">
-                    {row.kind === "ticket" ? "Tiket" : "F&B"} · {row.status} · {formatRupiah(row.total)}
+                    {row.kind === "ticket" ? "Tiket" : "F&B"} ·{" "}
+                    {row.status === "completed" ? "USED" : row.status} · {formatRupiah(row.total)}
                   </p>
                 </div>
               </div>
