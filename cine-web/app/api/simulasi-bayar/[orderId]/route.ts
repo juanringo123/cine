@@ -53,12 +53,21 @@ export async function GET(
     }
 
     const baseUrl = resolvePublicBaseUrl(request);
+    const demoEnabled = isDemoPaymentEnabled();
     let simulasiToken: string | null = null;
-    if (isDemoPaymentEnabled()) {
+    let simulasiError: string | null = null;
+
+    if (!demoEnabled) {
+      simulasiError =
+        "Simulasi pembayaran QRIS dinonaktifkan (NEXT_PUBLIC_DEMO_PAYMENT=false).";
+    } else {
       try {
         simulasiToken = createSimulasiToken(details.order_id, details.payment_id);
-      } catch {
-        simulasiToken = null;
+      } catch (err) {
+        simulasiError =
+          err instanceof Error
+            ? err.message
+            : "Secret simulasi pembayaran belum dikonfigurasi.";
       }
     }
 
@@ -66,6 +75,8 @@ export async function GET(
       {
         found: true,
         ...details,
+        demo_enabled: demoEnabled,
+        simulasi_error: simulasiError,
         simulasi_token: simulasiToken,
         simulasi_url: simulasiToken
           ? buildSimulasiUrl(baseUrl, details.order_id, simulasiToken)
@@ -95,7 +106,7 @@ export async function POST(
     return NextResponse.json(
       {
         error:
-          "Simulasi pembayaran dinonaktifkan. Set NEXT_PUBLIC_DEMO_PAYMENT=true untuk mengaktifkan mode demo.",
+          "Simulasi pembayaran dinonaktifkan (NEXT_PUBLIC_DEMO_PAYMENT=false).",
       },
       { status: 403 },
     );

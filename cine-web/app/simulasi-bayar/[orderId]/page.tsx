@@ -29,8 +29,8 @@ export default async function SimulasiBayarPage({
             <code className="font-mono font-semibold text-cine-ink">
               NEXT_PUBLIC_DEMO_PAYMENT
             </code>{" "}
-            belum diset ke{" "}
-            <code className="font-mono font-semibold text-cine-ink">true</code>.
+            diset ke{" "}
+            <code className="font-mono font-semibold text-cine-ink">false</code>.
           </p>
           <Link
             href="/"

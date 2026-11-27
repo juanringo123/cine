@@ -104,6 +104,7 @@ export default function PaymentForm({
   const [simulasiUrl, setSimulasiUrl] = useState<string>(
     initialPayment?.simulasi_url ?? "",
   );
+  const [qrError, setQrError] = useState<string | null>(null);
 
   const showDummyQris =
     Boolean(orderId) &&
@@ -122,10 +123,18 @@ export default function PaymentForm({
           `/api/simulasi-bayar/${encodeURIComponent(orderId)}`,
           { cache: "no-store" },
         );
-        if (!res.ok || stopped) return;
+        if (stopped) return;
+        if (!res.ok) {
+          const errData = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          setQrError(errData.error ?? "Gagal memuat QRIS terverifikasi.");
+          return;
+        }
         const data = (await res.json()) as {
           status?: string;
           amount?: number;
+          simulasi_error?: string | null;
           simulasi_token?: string | null;
           simulasi_url?: string | null;
         };
@@ -136,6 +145,9 @@ export default function PaymentForm({
         }
         if (data.simulasi_url) {
           setSimulasiUrl(data.simulasi_url);
+          setQrError(null);
+        } else if (data.simulasi_error) {
+          setQrError(data.simulasi_error);
         }
         if (typeof data.amount === "number") {
           setPaymentAmount(data.amount);
@@ -199,6 +211,7 @@ export default function PaymentForm({
       if (extId && extId !== orderId) {
         setSimulasiToken("");
         setSimulasiUrl("");
+        setQrError(null);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal membuat pembayaran.");
@@ -426,6 +439,10 @@ export default function PaymentForm({
                       height={250}
                       className="size-[230px] rounded-xl object-contain"
                     />
+                  ) : qrError ? (
+                    <div className="flex size-[230px] items-center justify-center rounded-xl border border-red-200 bg-red-50 p-4 text-center text-xs font-medium text-red-700">
+                      {qrError}
+                    </div>
                   ) : (
                     <div className="flex size-[230px] items-center justify-center rounded-xl border border-dashed border-cine-border text-xs text-cine-muted">
                       Menyiapkan QRIS terverifikasi...

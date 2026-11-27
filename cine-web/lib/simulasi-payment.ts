@@ -4,9 +4,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Flag fitur simulasi pembayaran QRIS (`NEXT_PUBLIC_DEMO_PAYMENT=true`). */
+/** Flag fitur simulasi pembayaran QRIS (aktif secara default untuk demo; set "false" untuk mematikan dengan HTTP 403). */
 export function isDemoPaymentEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_DEMO_PAYMENT === "true";
+  const flag = (process.env.NEXT_PUBLIC_DEMO_PAYMENT ?? "").trim().toLowerCase();
+  return flag !== "false" && flag !== "0";
 }
 
 function getSimulasiSecret(): string {
