@@ -6,6 +6,11 @@ import { BackHeader } from "@/components/ui/primitives";
 import { FIGMA_ICONS, resolveMoviePoster } from "@/lib/assets";
 import { resolvePublicBaseUrl } from "@/lib/base-url";
 import { isWeekendDate } from "@/lib/pricing";
+import {
+  buildSimulasiUrl,
+  createSimulasiToken,
+  isDemoPaymentEnabled,
+} from "@/lib/simulasi-payment";
 import { createClient } from "@/lib/supabase/server";
 import { formatRupiah } from "@/lib/utils";
 
@@ -78,6 +83,23 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
     new Request("http://localhost", { headers: reqHeaders }),
   );
 
+  let initialSimulasiToken: string | null = null;
+  let initialSimulasiUrl: string | null = null;
+  if (payment && payment.status === "pending" && isDemoPaymentEnabled()) {
+    try {
+      const extId = payment.external_id ?? payment.id;
+      initialSimulasiToken = createSimulasiToken(extId, payment.id);
+      initialSimulasiUrl = buildSimulasiUrl(
+        publicBaseUrl,
+        extId,
+        initialSimulasiToken,
+      );
+    } catch {
+      initialSimulasiToken = null;
+      initialSimulasiUrl = null;
+    }
+  }
+
   const initialPayment =
     payment && payment.status === "pending"
       ? {
@@ -87,6 +109,8 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
           amount: Number(payment.amount),
           status: payment.status,
           expires_at: payment.expires_at,
+          simulasi_token: initialSimulasiToken,
+          simulasi_url: initialSimulasiUrl,
         }
       : null;
 

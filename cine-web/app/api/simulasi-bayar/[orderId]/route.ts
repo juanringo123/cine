@@ -1,15 +1,33 @@
 import { NextResponse } from "next/server";
 import { resolvePublicBaseUrl } from "@/lib/base-url";
-import { findSimulasiPayment } from "@/lib/simulasi-payment";
+import {
+  buildSimulasiUrl,
+  createSimulasiToken,
+  findSimulasiPayment,
+  isDemoPaymentEnabled,
+  verifySimulasiAuth,
+} from "@/lib/simulasi-payment";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-/** GET: Cek status & detail pembayaran (dipakai oleh auto-polling halaman QR). */
+/** GET: Cek status & detail pembayaran (hanya pemilik pembayaran / admin via RLS). */
 export async function GET(
   request: Request,
   context: { params: Promise<{ orderId: string }> },
 ) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json(
+      { found: false, error: "Harus login untuk memeriksa status pembayaran." },
+      { status: 401 },
+    );
+  }
+
   const { orderId } = await context.params;
   try {
     const details = await findSimulasiPayment(orderId);
@@ -20,12 +38,38 @@ export async function GET(
       );
     }
 
+    // RLS memastikan hanya pemilik transaksi (atau admin/staff) yang dapat mengakses & menerima token QR.
+    const { data: owned } = await supabase
+      .from("payments")
+      .select("id")
+      .eq("id", details.payment_id)
+      .maybeSingle();
+
+    if (!owned) {
+      return NextResponse.json(
+        { found: false, error: "Anda tidak memiliki akses ke pembayaran ini." },
+        { status: 403 },
+      );
+    }
+
     const baseUrl = resolvePublicBaseUrl(request);
+    let simulasiToken: string | null = null;
+    if (isDemoPaymentEnabled()) {
+      try {
+        simulasiToken = createSimulasiToken(details.order_id, details.payment_id);
+      } catch {
+        simulasiToken = null;
+      }
+    }
+
     return NextResponse.json(
       {
         found: true,
         ...details,
-        simulasi_url: `${baseUrl}/simulasi-bayar/${encodeURIComponent(details.order_id)}`,
+        simulasi_token: simulasiToken,
+        simulasi_url: simulasiToken
+          ? buildSimulasiUrl(baseUrl, details.order_id, simulasiToken)
+          : null,
       },
       { headers: { "Cache-Control": "no-store" } },
     );
@@ -44,9 +88,19 @@ export async function GET(
 
 /** POST: Konfirmasi pembayaran simulasi QRIS dari halaman E-Wallet HP (`pending` -> `paid`). */
 export async function POST(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ orderId: string }> },
 ) {
+  if (!isDemoPaymentEnabled()) {
+    return NextResponse.json(
+      {
+        error:
+          "Simulasi pembayaran dinonaktifkan. Set NEXT_PUBLIC_DEMO_PAYMENT=true untuk mengaktifkan mode demo.",
+      },
+      { status: 403 },
+    );
+  }
+
   const { orderId } = await context.params;
   try {
     const details = await findSimulasiPayment(orderId);
@@ -54,6 +108,16 @@ export async function POST(
       return NextResponse.json(
         { error: "Pesanan tidak ditemukan." },
         { status: 404 },
+      );
+    }
+
+    if (!verifySimulasiAuth(details.order_id, details.payment_id, request)) {
+      return NextResponse.json(
+        {
+          error:
+            "Akses ditolak: token simulasi pembayaran tidak valid atau tidak disertakan.",
+        },
+        { status: 403 },
       );
     }
 
@@ -74,6 +138,16 @@ export async function POST(
         {
           error: `Transaksi berstatus "${details.status}" dan tidak dapat dibayar lagi.`,
           status: details.status,
+        },
+        { status: 409 },
+      );
+    }
+
+    if (details.expires_at && new Date(details.expires_at).getTime() < Date.now()) {
+      return NextResponse.json(
+        {
+          error: "Batas waktu pembayaran telah habis.",
+          status: "expired",
         },
         { status: 409 },
       );

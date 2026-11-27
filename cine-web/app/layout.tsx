@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart-provider";
 import AppChrome from "@/components/app-chrome";
+import { getInitialNavbarUser } from "@/lib/auth";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,14 +17,16 @@ export const metadata: Metadata = {
   description: "Pesan tiket film, pilih kursi, dan pesan F&B tanpa antre.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const initialUser = await getInitialNavbarUser();
+
   return (
     <html lang="id" className={inter.variable}>
       <body className="min-h-screen bg-cine-bg font-sans text-cine-ink">
         <CartProvider>
-          <AppChrome>{children}</AppChrome>
+          <AppChrome initialUser={initialUser}>{children}</AppChrome>
         </CartProvider>
       </body>
     </html>

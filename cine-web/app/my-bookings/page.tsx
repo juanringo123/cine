@@ -68,7 +68,7 @@ export default async function MyBookings({
   if (activeTab === "used") {
     query = query.eq("status", "completed");
   } else if (activeTab === "history") {
-    query = query.eq("status_group", "history");
+    query = query.eq("status_group", "history").neq("status", "completed");
   } else {
     query = query.eq("status_group", "active");
   }

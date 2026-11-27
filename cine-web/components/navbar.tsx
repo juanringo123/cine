@@ -11,6 +11,7 @@ import NotificationBell from "@/components/notification-bell";
 import GlassTabs, { type GlassTabItem } from "@/components/ui/glass-tabs";
 import { Avatar } from "@/components/ui/primitives";
 import { FIGMA_ICONS } from "@/lib/assets";
+import type { InitialNavbarUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -39,16 +40,32 @@ const NAV_LINKS = [
 
 const CITIES = ["Semua", "Jakarta", "Depok", "Bandung", "Bogor", "Bekasi", "Tangerang"];
 
-export default function Navbar() {
+export default function Navbar({
+  initialUser = null,
+}: {
+  initialUser?: InitialNavbarUser | null;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { count } = useCart();
   const supabase = useMemo(() => createClient(), []);
 
-  const [displayName, setDisplayName] = useState<string | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [isStaffOrAdmin, setIsStaffOrAdmin] = useState(false);
-  const [city, setCity] = useState("Depok");
+  const [displayName, setDisplayName] = useState<string | null>(
+    initialUser?.displayName ?? null,
+  );
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    initialUser?.avatarUrl ?? null,
+  );
+  const [isStaffOrAdmin, setIsStaffOrAdmin] = useState(
+    initialUser?.isStaffOrAdmin ?? false,
+  );
+  const [city, setCity] = useState(initialUser?.city || "Depok");
+
+  useEffect(() => {
+    setDisplayName(initialUser?.displayName ?? null);
+    setAvatarUrl(initialUser?.avatarUrl ?? null);
+    setIsStaffOrAdmin(initialUser?.isStaffOrAdmin ?? false);
+  }, [initialUser]);
   const [cityOpen, setCityOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hoveredCity, setHoveredCity] = useState<string | null>(null);

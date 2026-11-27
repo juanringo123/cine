@@ -144,6 +144,16 @@ Rate limit: 5 request OTP / 10 menit per IP, 10 verifikasi / 10 menit per IP. Un
 Untuk keperluan tugas tidak perlu akun Midtrans:
 - Biarkan `MIDTRANS_SERVER_KEY=` kosong dan `WEBHOOK_PROVIDER=generic`.
 - Di **Admin → Booking / Pesanan F&B**, klik **Tandai Lunas (simulasi)** — memanggil RPC `admin_mark_paid` (migration `0010`) yang meneruskan ke `confirm_payment`. Efeknya sama seperti webhook: status berubah, kursi jadi `booked`, notifikasi terkirim.
+- Atau scan QR Dummy QRIS ke `/simulasi-bayar/{orderId}?t={token}`. Untuk mengaktifkannya, pastikan `NEXT_PUBLIC_DEMO_PAYMENT=true` di `cine-web/.env` / `.env.local` (atau Vercel). Token `?t=` (HMAC-SHA256 per-order) hanya diterbitkan kepada pemilik transaksi yang sudah login di `GET /api/simulasi-bayar/{orderId}` atau `/payment/{id}`. Akses langsung hanya bermodal `PAY-...` tanpa `?t=` ditolak halaman simulasi, `GET /api/simulasi-bayar/{orderId}` mewajibkan login & kepemilikan (`401`/`403`), dan `POST /api/simulasi-bayar/{orderId}` mewajibkan `NEXT_PUBLIC_DEMO_PAYMENT=true`, header `X-Simulasi-Token` (atau `X-Internal-Key`), serta status `pending` yang belum kedaluwarsa (`403`/`409`).
 - Atau simulasikan webhook manual dengan `WEBHOOK_SECRET` (HMAC-SHA256 atas raw body, header `X-Signature: sha256=<hex>`).
 
 Alur Snap Midtrans baru dipakai jika server key diisi.
+
+## Deploy Vercel & Menghubungkan Go API
+
+Saat `cine-web` dideploy ke Vercel, Route Handler Next.js tidak dapat mengakses `http://localhost:8080`.
+- Jalankan Go API di server publik atau ekspos lokal via tunnel (`ngrok http 8080` / Cloudflare Tunnel / Railway).
+- Set environment variable di Vercel:
+  - `API_URL=https://<host-go-api-publik>` (prioritas utama server-side; atau `NEXT_PUBLIC_API_URL=https://<host-go-api-publik>`) agar `/api/auth/whatsapp/*` dan `/api/payment/charge` aktif.
+  - `SUPABASE_SERVICE_ROLE_KEY` (wajib untuk halaman `/simulasi-bayar/[orderId]`, `/api/tickets/verify`, dll.).
+  - `NEXT_PUBLIC_DEMO_PAYMENT=true` (hanya jika ingin mengizinkan demo QRIS di deployment tersebut) dan opsional `SIMULASI_PAYMENT_SECRET`.

@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import BottomNav from "@/components/bottom-nav";
 import CineAiAssistant from "@/components/cine-ai-assistant";
+import type { InitialNavbarUser } from "@/lib/auth";
 
 const AUTH_FULLBLEED_PATHS = [
   "/login",
@@ -14,7 +15,13 @@ const AUTH_FULLBLEED_PATHS = [
   "/simulasi-bayar",
 ];
 
-export default function AppChrome({ children }: { children: React.ReactNode }) {
+export default function AppChrome({
+  children,
+  initialUser = null,
+}: {
+  children: React.ReactNode;
+  initialUser?: InitialNavbarUser | null;
+}) {
   const pathname = usePathname();
   const hideChrome = AUTH_FULLBLEED_PATHS.some((p) => pathname.startsWith(p));
 
@@ -28,7 +35,7 @@ export default function AppChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar />
+      <Navbar initialUser={initialUser} />
       <div key={pathname} className="cine-page-enter flex-1 pb-4 sm:pb-0">
         {children}
       </div>

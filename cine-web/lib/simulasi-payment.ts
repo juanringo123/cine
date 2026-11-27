@@ -1,7 +1,87 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Flag fitur simulasi pembayaran QRIS (`NEXT_PUBLIC_DEMO_PAYMENT=true`). */
+export function isDemoPaymentEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_DEMO_PAYMENT === "true";
+}
+
+function getSimulasiSecret(): string {
+  return (
+    process.env.SIMULASI_PAYMENT_SECRET?.trim() ||
+    process.env.INTERNAL_API_KEY?.trim() ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+    ""
+  );
+}
+
+/** Membuat token HMAC per-order untuk otorisasi POST simulasi pembayaran dari halaman QR HP. */
+export function createSimulasiToken(orderId: string, paymentId: string): string {
+  const secret = getSimulasiSecret();
+  if (!secret) {
+    throw new Error(
+      "Secret simulasi pembayaran belum dikonfigurasi (SIMULASI_PAYMENT_SECRET / INTERNAL_API_KEY / SUPABASE_SERVICE_ROLE_KEY).",
+    );
+  }
+  return createHmac("sha256", secret)
+    .update(`simulasi:${orderId.trim().toUpperCase()}:${paymentId}`)
+    .digest("hex");
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length === 0 || bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
+/** Memverifikasi token HMAC per-order secara constant-time. */
+export function verifySimulasiToken(
+  orderId: string,
+  paymentId: string,
+  token: string | null | undefined,
+): boolean {
+  const cleanToken = token?.trim() ?? "";
+  if (!cleanToken) return false;
+  try {
+    const expected = createSimulasiToken(orderId, paymentId);
+    return safeEqual(cleanToken, expected);
+  } catch {
+    return false;
+  }
+}
+
+/** Membentuk URL simulasi pembayaran bertanda tangan (?t=...) untuk QR Code HP. */
+export function buildSimulasiUrl(
+  baseUrl: string,
+  orderId: string,
+  token: string,
+): string {
+  const cleanBase = baseUrl.replace(/\/+$/, "");
+  return `${cleanBase}/simulasi-bayar/${encodeURIComponent(orderId)}?t=${encodeURIComponent(token)}`;
+}
+
+/** Memverifikasi header `X-Simulasi-Token` (dari halaman simulasi) atau `X-Internal-Key`. */
+export function verifySimulasiAuth(
+  orderId: string,
+  paymentId: string,
+  request: Request,
+): boolean {
+  if (verifySimulasiToken(orderId, paymentId, request.headers.get("x-simulasi-token"))) {
+    return true;
+  }
+
+  const internalKey = process.env.INTERNAL_API_KEY?.trim() ?? "";
+  const reqInternalKey = request.headers.get("x-internal-key")?.trim() ?? "";
+  if (internalKey && reqInternalKey && safeEqual(reqInternalKey, internalKey)) {
+    return true;
+  }
+
+  return false;
+}
 
 export type SimulasiPaymentDetails = {
   payment_id: string;

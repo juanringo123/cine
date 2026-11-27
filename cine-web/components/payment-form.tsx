@@ -30,6 +30,8 @@ export type InitialPendingPayment = {
   amount: number;
   status: string;
   expires_at: string | null;
+  simulasi_token?: string | null;
+  simulasi_url?: string | null;
 };
 
 type CreatePaymentRpcResult = {
@@ -96,13 +98,12 @@ export default function PaymentForm({
   const [paymentStatus, setPaymentStatus] = useState<string>(
     initialPayment?.status ?? "",
   );
-  const [simulasiUrl, setSimulasiUrl] = useState<string>(() => {
-    if (!initialPayment?.external_id) return "";
-    const base = publicBaseUrl.replace(/\/+$/, "");
-    return base
-      ? `${base}/simulasi-bayar/${encodeURIComponent(initialPayment.external_id)}`
-      : `/simulasi-bayar/${encodeURIComponent(initialPayment.external_id)}`;
-  });
+  const [simulasiToken, setSimulasiToken] = useState<string>(
+    initialPayment?.simulasi_token ?? "",
+  );
+  const [simulasiUrl, setSimulasiUrl] = useState<string>(
+    initialPayment?.simulasi_url ?? "",
+  );
 
   const showDummyQris =
     Boolean(orderId) &&
@@ -125,10 +126,14 @@ export default function PaymentForm({
         const data = (await res.json()) as {
           status?: string;
           amount?: number;
-          simulasi_url?: string;
+          simulasi_token?: string | null;
+          simulasi_url?: string | null;
         };
         if (stopped) return;
 
+        if (data.simulasi_token) {
+          setSimulasiToken(data.simulasi_token);
+        }
         if (data.simulasi_url) {
           setSimulasiUrl(data.simulasi_url);
         }
@@ -191,13 +196,9 @@ export default function PaymentForm({
       setActiveMethod(res.method ?? selectedMethod);
       setPaymentStatus(res.status ?? "pending");
 
-      if (extId) {
-        const base =
-          publicBaseUrl.replace(/\/+$/, "") ||
-          (typeof window !== "undefined" ? window.location.origin : "");
-        setSimulasiUrl(
-          `${base}/simulasi-bayar/${encodeURIComponent(extId)}`,
-        );
+      if (extId && extId !== orderId) {
+        setSimulasiToken("");
+        setSimulasiUrl("");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal membuat pembayaran.");
@@ -416,7 +417,7 @@ export default function PaymentForm({
             ) : (
               <>
                 <div className="flex flex-col items-center gap-3 rounded-2xl border border-cine-border bg-white p-4">
-                  {qrImageSrc && (
+                  {qrImageSrc ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={qrImageSrc}
@@ -425,6 +426,10 @@ export default function PaymentForm({
                       height={250}
                       className="size-[230px] rounded-xl object-contain"
                     />
+                  ) : (
+                    <div className="flex size-[230px] items-center justify-center rounded-xl border border-dashed border-cine-border text-xs text-cine-muted">
+                      Menyiapkan QRIS terverifikasi...
+                    </div>
                   )}
                   <p className="text-center text-xs text-cine-muted">
                     Scan QR ini dari kamera HP / Google Lens yang terhubung di WiFi yang sama
@@ -454,14 +459,16 @@ export default function PaymentForm({
                 </div>
 
                 <div className="space-y-2">
-                  <Link
-                    href={`/simulasi-bayar/${encodeURIComponent(orderId)}`}
-                    target="_blank"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cine-maroon bg-white px-4 py-2.5 text-xs font-bold text-cine-maroon transition-colors hover:bg-cine-maroon/5"
-                  >
-                    <ExternalLink className="size-3.5" />
-                    Buka Halaman Simulasi (Tab Baru)
-                  </Link>
+                  {simulasiToken && (
+                    <Link
+                      href={`/simulasi-bayar/${encodeURIComponent(orderId)}?t=${encodeURIComponent(simulasiToken)}`}
+                      target="_blank"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cine-maroon bg-white px-4 py-2.5 text-xs font-bold text-cine-maroon transition-colors hover:bg-cine-maroon/5"
+                    >
+                      <ExternalLink className="size-3.5" />
+                      Buka Halaman Simulasi (Tab Baru)
+                    </Link>
+                  )}
                   {simulasiUrl && (
                     <p className="break-all text-center font-mono text-[11px] text-cine-muted">
                       {simulasiUrl}

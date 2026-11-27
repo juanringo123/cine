@@ -2,6 +2,20 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: "/movie",
+        destination: "/movies",
+        permanent: true,
+      },
+      {
+        source: "/movie/:slug",
+        destination: "/movies/:slug",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "picsum.photos" },

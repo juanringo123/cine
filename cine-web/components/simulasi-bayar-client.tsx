@@ -9,8 +9,10 @@ import type { SimulasiPaymentDetails } from "@/lib/simulasi-payment";
 
 export default function SimulasiBayarClient({
   initial,
+  confirmToken,
 }: {
   initial: SimulasiPaymentDetails;
+  confirmToken: string;
 }) {
   const [status, setStatus] = useState(initial.status);
   const [paidAt, setPaidAt] = useState(initial.paid_at);
@@ -26,7 +28,10 @@ export default function SimulasiBayarClient({
         `/api/simulasi-bayar/${encodeURIComponent(initial.order_id)}`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-Simulasi-Token": confirmToken,
+          },
         },
       );
       const data = (await response.json().catch(() => ({}))) as {

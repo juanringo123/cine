@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveGoApiUrl } from "@/lib/api-url";
 import { createClient } from "@/lib/supabase/server";
 
 /** Server route: meneruskan charge ke Go API dengan internal key setelah cek auth & kepemilikan. */
@@ -29,19 +30,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Pembayaran tidak ditemukan" }, { status: 404 });
   }
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
-  if (!apiUrl || (process.env.VERCEL && /localhost|127\.0\.0\.1/i.test(apiUrl))) {
+  const resolved = resolveGoApiUrl("Gateway Midtrans");
+  if (!resolved.ok) {
     return NextResponse.json(
       {
-        error:
-          "Gateway Midtrans belum terhubung di server ini. Gunakan metode QRIS (Simulasi) untuk melanjutkan pembayaran.",
+        error: `${resolved.error} Gunakan metode QRIS (Simulasi) jika belum memakai Midtrans.`,
       },
       { status: 503 },
     );
   }
 
   try {
-    const response = await fetch(`${apiUrl}/payments/charge`, {
+    const response = await fetch(`${resolved.url}/payments/charge`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
