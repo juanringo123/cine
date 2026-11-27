@@ -49,7 +49,10 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           <div className="cine-divider" />
 
           <Row label="Kode pesanan" value={order.order_code} />
-          <Row label="Status" value={order.status} />
+          <Row
+            label="Status"
+            value={order.status === "completed" ? "USED (Sudah Diambil)" : order.status}
+          />
           <Row label="Tanggal pengambilan" value={formatLongDate(order.pickup_date)} />
           <Row label="Waktu pengambilan" value={`${order.pickup_time.slice(0, 5)} WIB`} />
 

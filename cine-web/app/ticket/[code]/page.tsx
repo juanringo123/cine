@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import QRCode from "qrcode";
+import BookingStatusWatcher from "@/components/booking-status-watcher";
 import TicketActions from "@/components/ticket-actions";
 import { BackHeader } from "@/components/ui/primitives";
 import { FIGMA_ICONS, resolveFnbImage, resolveMoviePoster } from "@/lib/assets";
@@ -75,6 +76,7 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
 
     return (
       <main className="cine-container flex flex-col gap-8 pb-20 pt-8">
+        <BookingStatusWatcher userId={user.id} />
         <BackHeader title="Your Ticket" href="/my-bookings" />
 
         <div className="mx-auto flex w-full max-w-[960px] flex-col items-center gap-7">
@@ -159,6 +161,7 @@ export default async function TicketPage({ params }: { params: Promise<{ code: s
 
   return (
     <main className="cine-container flex flex-col gap-8 pb-20 pt-8">
+      <BookingStatusWatcher userId={user.id} />
       <BackHeader title="Your F&B" href="/my-bookings" />
 
       <div className="mx-auto flex w-full max-w-[960px] flex-col items-center gap-7">
