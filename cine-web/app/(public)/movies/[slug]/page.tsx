@@ -176,23 +176,27 @@ export default async function MovieDetail({
                 <h2 className="text-xl font-bold text-cine-ink">Cast</h2>
                 <div className="no-scrollbar flex gap-3 overflow-x-auto py-2">
                   {cast.map((person) => (
-                    <div
+                    <a
                       key={person.id}
-                      className="flex w-[84px] shrink-0 flex-col items-center gap-2 text-center"
+                      href={`/api/cast/bio?name=${encodeURIComponent(person.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`Lihat biografi ${person.name}${person.character_name ? ` (${person.character_name})` : ""}`}
+                      className="group flex w-[84px] shrink-0 cursor-pointer flex-col items-center gap-2 text-center transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5"
                     >
-                      <div className="relative size-[70px] overflow-hidden rounded-full bg-cine-cream">
+                      <div className="relative size-[70px] overflow-hidden rounded-full bg-cine-cream ring-2 ring-transparent transition-all duration-200 group-hover:ring-cine-maroon">
                         <Image
                           src={resolveCastPhoto(person.photo_url, person.id)}
                           alt={person.name}
                           fill
                           sizes="70px"
-                          className="object-cover"
+                          className="object-cover transition-transform duration-200 group-hover:scale-105"
                         />
                       </div>
-                      <span className="line-clamp-2 text-xs text-cine-muted">
+                      <span className="line-clamp-2 text-xs text-cine-muted transition-colors duration-200 group-hover:font-medium group-hover:text-cine-maroon group-hover:underline">
                         {person.name}
                       </span>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
