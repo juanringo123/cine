@@ -39,24 +39,52 @@ export async function GET(
   }
 
   const endpoint = booking ? "tickets" : "orders";
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-  try {
-    const response = await fetch(
-      `${apiUrl}/${endpoint}/${encodeURIComponent(cleanCode)}/qr.png`,
-      {
-        headers: { "X-Internal-Key": process.env.INTERNAL_API_KEY ?? "" },
-        cache: "no-store",
-      },
-    );
+  const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
+  const canTryGoApi =
+    Boolean(configuredApiUrl) &&
+    !(process.env.VERCEL && /localhost|127\.0\.0\.1/i.test(configuredApiUrl));
 
-    if (!response.ok) {
+  if (canTryGoApi) {
+    try {
+      const response = await fetch(
+        `${configuredApiUrl}/${endpoint}/${encodeURIComponent(cleanCode)}/qr.png`,
+        {
+          headers: { "X-Internal-Key": process.env.INTERNAL_API_KEY ?? "" },
+          cache: "no-store",
+          signal: AbortSignal.timeout(2500),
+        },
+      );
+
+      if (response.ok) {
+        const bytes = await response.arrayBuffer();
+        return new NextResponse(bytes, {
+          status: 200,
+          headers: {
+            "Content-Type": "image/png",
+            "Cache-Control": "private, max-age=300",
+          },
+        });
+      }
+    } catch {
+      // Lanjut ke fallback generator QR PNG agar tetap tampil di Vercel tanpa Go API.
+    }
+  }
+
+  try {
+    const fallbackUrl = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=10&format=png&data=${encodeURIComponent(cleanCode)}`;
+    const qrRes = await fetch(fallbackUrl, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!qrRes.ok) {
       return NextResponse.json(
-        { error: "Gagal mengambil QR code" },
-        { status: response.status },
+        { error: "Gagal membuat QR code tiket" },
+        { status: 502 },
       );
     }
 
-    const bytes = await response.arrayBuffer();
+    const bytes = await qrRes.arrayBuffer();
     return new NextResponse(bytes, {
       status: 200,
       headers: {
@@ -66,7 +94,7 @@ export async function GET(
     });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Gagal menghubungi Go API" },
+      { error: error instanceof Error ? error.message : "Gagal membuat QR code" },
       { status: 502 },
     );
   }
