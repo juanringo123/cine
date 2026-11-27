@@ -29,7 +29,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Pembayaran tidak ditemukan" }, { status: 404 });
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
+  if (!apiUrl || (process.env.VERCEL && /localhost|127\.0\.0\.1/i.test(apiUrl))) {
+    return NextResponse.json(
+      {
+        error:
+          "Gateway Midtrans belum terhubung di server ini. Gunakan metode QRIS (Simulasi) untuk melanjutkan pembayaran.",
+      },
+      { status: 503 },
+    );
+  }
+
   try {
     const response = await fetch(`${apiUrl}/payments/charge`, {
       method: "POST",
@@ -39,6 +49,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({ payment_id: paymentId }),
       cache: "no-store",
+      signal: AbortSignal.timeout(8000),
     });
     const data = await response.json().catch(() => ({}));
     return NextResponse.json(data, { status: response.status });

@@ -11,13 +11,24 @@ function forwardedHeaders(request: Request): Record<string, string> {
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
+  if (!apiUrl || (process.env.VERCEL && /localhost|127\.0\.0\.1/i.test(apiUrl))) {
+    return NextResponse.json(
+      {
+        error:
+          "Layanan WhatsApp OTP belum aktif di server ini. Silakan masuk menggunakan Email & Kata Sandi.",
+      },
+      { status: 503 },
+    );
+  }
+
   try {
     const response = await fetch(`${apiUrl}/auth/whatsapp/verify`, {
       method: "POST",
       headers: forwardedHeaders(request),
       body: JSON.stringify(body),
       cache: "no-store",
+      signal: AbortSignal.timeout(8000),
     });
     return NextResponse.json(await response.json().catch(() => ({})), {
       status: response.status,

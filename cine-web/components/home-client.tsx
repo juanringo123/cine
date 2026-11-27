@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Cinema, Movie, Promo } from "@/../supabase/types/database";
 import MovieCard from "@/components/movie-card";
@@ -33,7 +33,24 @@ export default function HomeClient({
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [selectedCity, setSelectedCity] = useState<string>("Semua");
   const needle = query.trim().toLowerCase();
+
+  useEffect(() => {
+    const applyCity = (val: string | null) => {
+      if (!val || val === "Semua") {
+        setSelectedCity("Semua");
+        return;
+      }
+      setSelectedCity(val);
+    };
+    applyCity(window.localStorage.getItem("cine_city"));
+    const onCityChange = (e: Event) => {
+      applyCity((e as CustomEvent<string>).detail ?? null);
+    };
+    window.addEventListener("cine:city-change", onCityChange);
+    return () => window.removeEventListener("cine:city-change", onCityChange);
+  }, []);
 
   const filteredNow = useMemo(
     () =>
@@ -51,17 +68,20 @@ export default function HomeClient({
     [comingSoon, needle],
   );
 
-  const filteredCinemas = useMemo(
-    () =>
-      needle
-        ? cinemas.filter(
-            (c) =>
-              c.name.toLowerCase().includes(needle) ||
-              c.city.toLowerCase().includes(needle),
-          )
-        : cinemas,
-    [cinemas, needle],
-  );
+  const filteredCinemas = useMemo(() => {
+    const byCity =
+      selectedCity !== "Semua"
+        ? cinemas.filter((c) => c.city.toLowerCase() === selectedCity.toLowerCase())
+        : cinemas;
+    const base = byCity.length > 0 ? byCity : cinemas;
+    return needle
+      ? base.filter(
+          (c) =>
+            c.name.toLowerCase().includes(needle) ||
+            c.city.toLowerCase().includes(needle),
+        )
+      : base;
+  }, [cinemas, needle, selectedCity]);
 
   function onSearchSubmit(e: React.FormEvent) {
     e.preventDefault();

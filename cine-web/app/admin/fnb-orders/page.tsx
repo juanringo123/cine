@@ -49,7 +49,15 @@ export default async function AdminFnbOrders() {
                 <p className="font-semibold">{order.order_code}</p>
                 <p className="text-xs text-cine-muted">{order.pickup_date} · {order.pickup_time} · {formatRupiah(order.total)}</p>
               </div>
-              <span className="rounded-full bg-white px-3 py-1 text-xs">{order.status}</span>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  order.status === "completed"
+                    ? "bg-cine-maroon text-white"
+                    : "bg-white text-cine-ink"
+                }`}
+              >
+                {order.status === "completed" ? "USED" : order.status}
+              </span>
               {isAdmin && paymentByOrder.has(order.id) && (
                 <PaymentActions paymentId={paymentByOrder.get(order.id)!} />
               )}

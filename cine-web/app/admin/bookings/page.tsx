@@ -45,7 +45,15 @@ export default async function AdminBookings() {
                 <p className="font-semibold">{booking.booking_code}</p>
                 <p className="text-xs text-cine-muted">{formatRupiah(booking.total)} · {booking.created_at.slice(0, 10)}</p>
               </div>
-              <span className="rounded-full bg-white px-3 py-1 text-xs">{booking.status}</span>
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  booking.status === "completed"
+                    ? "bg-cine-maroon text-white"
+                    : "bg-white text-cine-ink"
+                }`}
+              >
+                {booking.status === "completed" ? "USED" : booking.status}
+              </span>
               {isAdmin && paymentByBooking.has(booking.id) && (
                 <PaymentActions paymentId={paymentByBooking.get(booking.id)!} />
               )}

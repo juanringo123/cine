@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Enums, Promo } from "@/../supabase/types/database";
 import Button from "@/components/ui/button";
+import { getJakartaDateISO } from "@/lib/utils";
 
 export default function PromoManager({ promos }: { promos: Promo[] }) {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function PromoManager({ promos }: { promos: Promo[] }) {
   const [value, setValue] = useState("10");
   const [minPurchase, setMinPurchase] = useState("0");
   const [maxDiscount, setMaxDiscount] = useState("");
-  const [validUntil, setValidUntil] = useState(new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10));
+  const [validUntil, setValidUntil] = useState(() => getJakartaDateISO(30));
   const [quota, setQuota] = useState("");
   const [perUserLimit, setPerUserLimit] = useState("1");
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export default function PromoManager({ promos }: { promos: Promo[] }) {
       discount_value: Number(value),
       min_purchase: Number(minPurchase),
       max_discount: maxDiscount ? Number(maxDiscount) : null,
-      valid_until: new Date(`${validUntil}T23:59:59Z`).toISOString(),
+      valid_until: new Date(`${validUntil}T23:59:59+07:00`).toISOString(),
       quota: quota ? Number(quota) : null,
       per_user_limit: Number(perUserLimit),
     });

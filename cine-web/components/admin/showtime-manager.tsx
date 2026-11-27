@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Enums, Movie, Studio, Showtime } from "@/../supabase/types/database";
 import Button from "@/components/ui/button";
 import { getDefaultShowtimePrice, getWeekendSurcharge, isWeekendDate } from "@/lib/pricing";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, getJakartaDateISO } from "@/lib/utils";
 
 type ShowtimeRow = Pick<Showtime, "id" | "show_date" | "start_time" | "end_time" | "price" | "format"> & {
   movie_title: string;
@@ -36,7 +36,7 @@ export default function ShowtimeManager({
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const initialDate = new Date().toISOString().slice(0, 10);
+  const initialDate = getJakartaDateISO();
   const [movieId, setMovieId] = useState(movies[0]?.id ?? "");
   const [studioId, setStudioId] = useState(studios[0]?.id ?? "");
   const [showDate, setShowDate] = useState(initialDate);

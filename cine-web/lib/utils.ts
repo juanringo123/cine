@@ -20,3 +20,27 @@ export function formatTanggal(value: string) {
     year: "numeric",
   }).format(new Date(value));
 }
+
+/** Mengembalikan tanggal YYYY-MM-DD sesuai zona waktu Asia/Jakarta (WIB). */
+export function getJakartaDateISO(offsetDays = 0): string {
+  const target = new Date(Date.now() + offsetDays * 86_400_000);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(target);
+}
+
+/** Mengembalikan jam HH:MM saat ini sesuai zona waktu Asia/Jakarta (WIB). */
+export function getJakartaTimeHHMM(): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jakarta",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const hh = parts.find((p) => p.type === "hour")?.value ?? "00";
+  const mm = parts.find((p) => p.type === "minute")?.value ?? "00";
+  return `${hh}:${mm}`;
+}

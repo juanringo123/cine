@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import BookingStatusWatcher from "@/components/booking-status-watcher";
 import GlassTabs from "@/components/ui/glass-tabs";
 import { resolveFnbImage, resolveMoviePoster } from "@/lib/assets";
@@ -57,6 +58,7 @@ export default async function MyBookings({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   let query = supabase
     .from("v_my_bookings")

@@ -11,6 +11,7 @@ import {
   resolveMovieBackdrop,
   resolveMoviePoster,
 } from "@/lib/assets";
+import { getJakartaDateISO, getJakartaTimeHHMM } from "@/lib/utils";
 import { toYouTubeThumbnailUrl } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,9 @@ export default async function MovieDetail({
   }
   if (!movie) notFound();
 
+  const todayJakarta = getJakartaDateISO();
+  const nowTimeJakarta = getJakartaTimeHHMM();
+
   const [{ data: genreRows }, { data: genreMaster }, { data: cast }, { data: showtimes }] =
     await Promise.all([
       supabase.from("movie_genres").select("genre_id").eq("movie_id", movie.id),
@@ -50,20 +54,25 @@ export default async function MovieDetail({
         .select("id, show_date, start_time, end_time, price, format, studio_id")
         .eq("movie_id", movie.id)
         .eq("is_active", true)
+        .gte("show_date", todayJakarta)
         .order("show_date")
         .order("start_time"),
     ]);
 
+  const upcomingShowtimes = (showtimes ?? []).filter(
+    (st) => st.show_date > todayJakarta || st.start_time.slice(0, 5) >= nowTimeJakarta,
+  );
+
   const genreIds = new Set((genreRows ?? []).map((row) => row.genre_id));
   const genres = (genreMaster ?? []).filter((g) => genreIds.has(g.id));
 
-  const { data: studios } = (showtimes ?? []).length
+  const { data: studios } = upcomingShowtimes.length
     ? await supabase
         .from("studios")
         .select("id, name, cinema_id")
         .in(
           "id",
-          showtimes!.map((s) => s.studio_id),
+          upcomingShowtimes.map((s) => s.studio_id),
         )
     : { data: [] as { id: string; name: string; cinema_id: string }[] };
 
@@ -81,7 +90,7 @@ export default async function MovieDetail({
   const studioMap = new Map((studios ?? []).map((s) => [s.id, s]));
   const cinemaMap = new Map((cinemas ?? []).map((c) => [c.id, c]));
 
-  const showtimeOptions: MovieShowtimeOption[] = (showtimes ?? []).map((st) => {
+  const showtimeOptions: MovieShowtimeOption[] = upcomingShowtimes.map((st) => {
     const studio = studioMap.get(st.studio_id);
     const cinema = studio ? cinemaMap.get(studio.cinema_id) : undefined;
     return {

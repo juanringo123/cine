@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart-provider";
 import { createClient } from "@/lib/supabase/client";
 import type { Json } from "@/../supabase/types/database";
-import { cn, formatRupiah } from "@/lib/utils";
+import { cn, formatRupiah, getJakartaDateISO } from "@/lib/utils";
 import Button from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/primitives";
 
@@ -17,7 +17,7 @@ export default function CartPanel({ cinemas }: { cinemas: CinemaOption[] }) {
   const { items, total, setQuantity, remove, clear } = useCart();
 
   const [cinemaId, setCinemaId] = useState(cinemas[0]?.id ?? "");
-  const [pickupDate, setPickupDate] = useState(new Date().toISOString().slice(0, 10));
+  const [pickupDate, setPickupDate] = useState(() => getJakartaDateISO());
   const [pickupTime, setPickupTime] = useState("18:00");
   const [bookingId, setBookingId] = useState("");
   const [promoCode, setPromoCode] = useState("");
